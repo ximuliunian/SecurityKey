@@ -1,0 +1,205 @@
+package top.xmln.option;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 命令行选项解析器
+ */
+public final class OptionsParser {
+    /**
+     * 名称
+     */
+    private final String name;
+    /**
+     * 描述
+     */
+    private final String help;
+    /**
+     * 执行命令
+     */
+    private final OptionsRun runFun;
+    /**
+     * 子选项解析器
+     */
+    private final Map<String, OptionsParser> childOptions = new HashMap<>();
+    /**
+     * 选项信息
+     */
+    private final Map<String, OptionsItem> optionsMap = new HashMap<>();
+
+    /**
+     * 根选项构造
+     */
+    public OptionsParser(OptionsRun runFun) {
+        this.name = "root";
+        this.help = "";
+        this.runFun = runFun;
+    }
+
+    /**
+     * 子命令构造
+     *
+     * @param parentOptions 父选项
+     * @param name          名称
+     * @param help          帮助信息
+     */
+    public OptionsParser(OptionsParser parentOptions, String name, String help, OptionsRun runFun) {
+        this.name = name;
+        this.help = help;
+        this.runFun = runFun;
+        parentOptions.childOptions.put(name, this);
+    }
+
+    /**
+     * 添加选项
+     *
+     * @param optionsItem 选项
+     * @return 本类
+     */
+    public OptionsParser add(OptionsItem optionsItem) {
+        optionsMap.put(optionsItem.name(), optionsItem);
+        return this;
+    }
+
+    /**
+     * 选项解析
+     *
+     * @param args 选项参数
+     */
+    public void parse(String[] args) {
+        if (args.length == 0) {
+            System.out.println(this);
+            return;
+        }
+
+        // 是否以-开头
+        String arg = args[0];
+        if (arg.startsWith("-")) {
+            // 解析并执行命令
+            Map<String, Option> options = parseString(0, args, optionsMap);
+            this.runFun.run(options);
+            return;
+        }
+
+        // 解析子命令
+        OptionsParser parser = childOptions.get(arg);
+        if (parser == null) {
+            System.out.println("问题：没有该子命令[" + arg + "]，可用子命令：" + childOptions.keySet());
+            return;
+        }
+        Map<String, Option> options = parseString(1, args, parser.optionsMap);
+        parser.runFun.run(options);
+    }
+
+    /**
+     * 解析选项
+     *
+     * @param startIndex 开始索引
+     * @param args       选项参数
+     * @param options    选项信息
+     * @return 解析后的选项
+     */
+    private Map<String, Option> parseString(int startIndex, String[] args, Map<String, OptionsItem> options) {
+        Map<String, Option> result = new HashMap<>();
+        // 先把所有的默认选项添加到结果中
+        for (OptionsItem value : options.values()) {
+            if (value.defaultValue() != null) {
+                result.put(value.name(), new Option(value.name(), value.defaultValue(), value.type()));
+            }
+        }
+
+        // 开始解析
+        for (int i = startIndex; i < args.length; i++) {
+            String[] split = args[i].split("=");
+            String val = null;
+            if (split.length >= 2) {
+                val = args[i].substring(split[0].length() + 1);
+            }
+
+            for (OptionsItem value : options.values()) {
+                if (!value.args().contains(split[0])) {
+                    continue;
+                }
+                switch (value.type()) {
+                    // 布尔类型
+                    case Boolean -> {
+                        /*
+                         * 对于布尔类型如果没有值而且默认值不为空的情况下
+                         * 如果默认值为true，那么就添加false，否则就添加true
+                         * */
+                        if (val == null || val.isBlank()) {
+                            if (value.defaultValue() != null) {
+                                result.put(value.name(), new Option(value.name(), !((boolean) value.defaultValue()), value.type()));
+                            }
+                            continue;
+                        }
+
+                        // 有值则添加到结果中
+                        if ("true".equals(val) || "false".equals(val)) {
+                            result.put(value.name(), new Option(value.name(), Boolean.parseBoolean(val), value.type()));
+                        } else {
+                            System.out.println("问题：参数[" + value.name() + "]必须是true/false，当前值：" + val);
+                            return null;
+                        }
+                    }
+
+                    // 字符串类型
+                    case String -> {
+                        if (val == null || val.isBlank()) {
+                            continue;
+                        }
+                        result.put(value.name(), new Option(value.name(), val, value.type()));
+                    }
+
+                    // 整数类型
+                    case Integer -> {
+                        if (val == null || val.isBlank()) {
+                            continue;
+                        }
+                        // 整数类型校验
+                        try {
+                            result.put(value.name(), new Option(value.name(), Integer.parseInt(val), value.type()));
+                        } catch (NumberFormatException e) {
+                            System.out.println("问题：参数[" + value.name() + "]必须是整数，当前值：" + val);
+                            return null;
+                        }
+                    }
+
+                    // 方法类型
+                    case Function -> {
+                        result.put(value.name(), new Option(value.name(), null, value.type()));
+                    }
+                }
+            }
+        }
+
+        // 检查一下必选参数是否为空
+        if (options.size() != result.size()) {
+            System.out.println("问题：必填参数为空");
+            return null;
+        }
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("格式：选项标志 选项类型(默认值) 帮助信息\n");
+        for (OptionsItem optionsItem : optionsMap.values()) {
+            sb.append(optionsItem).append("\n");
+        }
+        if (childOptions.isEmpty()) {
+            return sb.toString();
+        }
+
+        sb.append("\n");
+        for (OptionsParser optionsParser : childOptions.values()) {
+            sb.append(String.format("%s：%s\n", optionsParser.name, optionsParser.help));
+            for (OptionsItem optionsItem : optionsParser.optionsMap.values()) {
+                sb.append("\t").append(optionsItem).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+}
