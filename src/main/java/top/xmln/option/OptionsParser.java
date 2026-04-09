@@ -30,26 +30,46 @@ public final class OptionsParser {
     private final Map<String, OptionsItem> optionsMap = new HashMap<>();
 
     /**
-     * 根选项构造
+     * 子命令构造
+     *
+     * @param name   名称
+     * @param help   帮助信息
+     * @param runFun 执行命令
      */
-    public OptionsParser(OptionsRun runFun) {
-        this.name = "root";
-        this.help = "";
+
+    private OptionsParser(String name, String help, OptionsRun runFun) {
+        this.name = name;
+        this.help = help;
         this.runFun = runFun;
     }
 
     /**
-     * 子命令构造
+     * 根选项构造工厂
      *
-     * @param parentOptions 父选项
-     * @param name          名称
-     * @param help          帮助信息
+     * @param runFun 执行命令
+     * @param help   帮助信息
+     * @return 根选项解析器
      */
-    public OptionsParser(OptionsParser parentOptions, String name, String help, OptionsRun runFun) {
-        this.name = name;
-        this.help = help;
-        this.runFun = runFun;
-        parentOptions.childOptions.put(name, this);
+    public static OptionsParser createRoot(OptionsRun runFun, String help) {
+        OptionsParser rootParser = new OptionsParser("root", help, runFun);
+        runFun.register(rootParser);
+        return rootParser;
+    }
+
+    /**
+     * 子命令构造工厂
+     *
+     * @param parent 父选项解析器
+     * @param name   子命令名称
+     * @param help   子命令描述信息
+     * @param runFun 执行命令
+     * @return 子命令解析器
+     */
+    public static OptionsParser createChild(OptionsParser parent, String name, String help, OptionsRun runFun) {
+        OptionsParser childParser = new OptionsParser(name, help, runFun);
+        parent.childOptions.put(name, childParser);
+        runFun.register(childParser);
+        return childParser;
     }
 
     /**
@@ -205,7 +225,7 @@ public final class OptionsParser {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("格式：[子命令] [选项标志] 选项类型(默认值) 帮助信息\n");
+        sb.append(help).append("\n");
 
         int totalItems = optionsMap.size() + childOptions.size();
         int currentIndex = 0;
