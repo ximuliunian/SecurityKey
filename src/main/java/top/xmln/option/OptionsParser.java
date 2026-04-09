@@ -1,7 +1,11 @@
 package top.xmln.option;
 
+import top.xmln.utils.PrintUtils;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -23,11 +27,11 @@ public final class OptionsParser {
     /**
      * 子选项解析器
      */
-    private final Map<String, OptionsParser> childOptions = new HashMap<>();
+    private final Map<String, OptionsParser> childOptions = new LinkedHashMap<>();
     /**
      * 选项信息
      */
-    private final Map<String, OptionsItem> optionsMap = new HashMap<>();
+    private final Map<String, OptionsItem> optionsMap = new LinkedHashMap<>();
 
     /**
      * 子命令构造
@@ -110,7 +114,7 @@ public final class OptionsParser {
         OptionsParser parser = childOptions.get(arg);
         while (true) {
             if (parser == null) {
-                System.out.println("问题：没有该子命令[" + arg + "]，可用子命令：" + childOptions.keySet());
+                PrintUtils.error("子命令[" + arg + "]不存在，可用子命令：" + childOptions.keySet());
                 break;
             }
 
@@ -183,7 +187,7 @@ public final class OptionsParser {
                         if ("true".equals(val) || "false".equals(val)) {
                             result.put(value.name(), new Option(value.name(), Boolean.parseBoolean(val), value.type()));
                         } else {
-                            System.out.println("问题：参数[" + value.name() + "]必须是true/false，当前值：" + val);
+                            PrintUtils.error("参数[" + value.name() + "]必须是true/false，当前值：" + val);
                             return null;
                         }
                     }
@@ -194,16 +198,16 @@ public final class OptionsParser {
                         result.put(value.name(), new Option(value.name(), val, value.type()));
                     }
 
-                    // 整数类型
-                    case Integer -> {
+                    // 数字类型
+                    case Number -> {
                         if (val == null || val.isBlank()) continue;
-                        // 整数类型校验
-                        try {
-                            result.put(value.name(), new Option(value.name(), Integer.parseInt(val), value.type()));
-                        } catch (NumberFormatException e) {
-                            System.out.println("问题：参数[" + value.name() + "]必须是整数，当前值：" + val);
+
+                        // 通过正则表达式校验是否为数字类型
+                        if (!val.matches("\\d+(\\.\\d+)?")) {
+                            PrintUtils.error("参数[" + value.name() + "]必须是数字，当前值：" + val);
                             return null;
                         }
+                        result.put(value.name(), new Option(value.name(), new BigDecimal(val), value.type()));
                     }
 
                     // 方法类型
@@ -216,7 +220,7 @@ public final class OptionsParser {
 
         // 检查一下必选参数是否为空
         if (options.size() != result.size()) {
-            System.out.println("问题：必填参数为空");
+            PrintUtils.error("必填参数为空");
             return null;
         }
         return result;

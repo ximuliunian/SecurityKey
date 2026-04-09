@@ -9,6 +9,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum Type {
-    Integer("整数"), String("字符串"), Boolean("布尔值"), Function("功能");
+    Number("数字"), String("字符串"), Boolean("布尔值"), Function("功能");
     private final String name;
 }
