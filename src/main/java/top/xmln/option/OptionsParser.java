@@ -1,5 +1,6 @@
 package top.xmln.option;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,28 +69,44 @@ public final class OptionsParser {
      * @param args 选项参数
      */
     public void parse(String[] args) {
-        if (args.length == 0) {
+        if (args == null || args.length == 0) {
             System.out.println(this);
             return;
         }
 
+        int i = 0;
+
         // 是否以-开头
-        String arg = args[0];
+        String arg = args[i];
         if (arg.startsWith("-")) {
             // 解析并执行命令
             Map<String, Option> options = parseString(0, args, optionsMap);
+            if (options == null) return;
             this.runFun.run(options);
             return;
         }
 
         // 解析子命令
         OptionsParser parser = childOptions.get(arg);
-        if (parser == null) {
-            System.out.println("问题：没有该子命令[" + arg + "]，可用子命令：" + childOptions.keySet());
-            return;
+        while (true) {
+            if (parser == null) {
+                System.out.println("问题：没有该子命令[" + arg + "]，可用子命令：" + childOptions.keySet());
+                break;
+            }
+
+            // 添加解析 孙、曾孙、... 命令的能力
+            if (i < args.length - 1 && !args[i + 1].startsWith("-")) {
+                i++;
+                parser = parser.childOptions.get(args[i]);
+                continue;
+            }
+
+            // 解析选项并执行命令
+            Map<String, Option> options = parseString(i + 1, args, parser.optionsMap);
+            if (options == null) return;
+            parser.runFun.run(options);
+            break;
         }
-        Map<String, Option> options = parseString(1, args, parser.optionsMap);
-        parser.runFun.run(options);
     }
 
     /**
@@ -111,16 +128,23 @@ public final class OptionsParser {
 
         // 开始解析
         for (int i = startIndex; i < args.length; i++) {
-            String[] split = args[i].split("=");
-            String val = null;
-            if (split.length >= 2) {
-                val = args[i].substring(split[0].length() + 1);
+            int splitIndex = args[i].indexOf("=");
+            // 判断是否为纯选项的场景
+            if (splitIndex == -1) {
+                splitIndex = args[i].length();
+            }
+            String key = args[i].substring(0, splitIndex);
+            String val;
+            // 如果是纯选项，那么值为null，否则值为 = 后面的内容
+            if (key.length() == args[i].length()) {
+                val = null;
+            } else {
+                val = args[i].substring(splitIndex + 1);
             }
 
             for (OptionsItem value : options.values()) {
-                if (!value.args().contains(split[0])) {
-                    continue;
-                }
+                if (!value.args().contains(key)) continue;
+
                 switch (value.type()) {
                     // 布尔类型
                     case Boolean -> {
@@ -146,17 +170,13 @@ public final class OptionsParser {
 
                     // 字符串类型
                     case String -> {
-                        if (val == null || val.isBlank()) {
-                            continue;
-                        }
+                        if (val == null || val.isBlank()) continue;
                         result.put(value.name(), new Option(value.name(), val, value.type()));
                     }
 
                     // 整数类型
                     case Integer -> {
-                        if (val == null || val.isBlank()) {
-                            continue;
-                        }
+                        if (val == null || val.isBlank()) continue;
                         // 整数类型校验
                         try {
                             result.put(value.name(), new Option(value.name(), Integer.parseInt(val), value.type()));
@@ -185,21 +205,52 @@ public final class OptionsParser {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("格式：选项标志 选项类型(默认值) 帮助信息\n");
-        for (OptionsItem optionsItem : optionsMap.values()) {
-            sb.append(optionsItem).append("\n");
-        }
-        if (childOptions.isEmpty()) {
-            return sb.toString();
+        sb.append("格式：[子命令] [选项标志] 选项类型(默认值) 帮助信息\n");
+
+        int totalItems = optionsMap.size() + childOptions.size();
+        int currentIndex = 0;
+
+        // 打印根选项
+        for (OptionsItem item : optionsMap.values()) {
+            currentIndex++;
+            boolean isLast = currentIndex == totalItems;
+            sb.append(isLast ? "└─ " : "├─ ").append(item).append("\n");
         }
 
-        sb.append("\n");
-        for (OptionsParser optionsParser : childOptions.values()) {
-            sb.append(String.format("%s：%s\n", optionsParser.name, optionsParser.help));
-            for (OptionsItem optionsItem : optionsParser.optionsMap.values()) {
-                sb.append("\t").append(optionsItem).append("\n");
-            }
-        }
+        // 统一打印子命令
+        printChildren(sb, childOptions, "");
         return sb.toString();
+    }
+
+    /**
+     * 递归打印子命令
+     *
+     * @param sb       缓存字符串
+     * @param children 子命令
+     * @param prefix   前缀
+     */
+    private void printChildren(StringBuilder sb, Map<String, OptionsParser> children, String prefix) {
+        if (children.isEmpty()) return;
+
+        int index = 0;
+        int size = children.size();
+        for (OptionsParser child : children.values()) {
+            index++;
+            boolean isLast = index == size;
+
+            // 打印子命令名称
+            sb.append(prefix).append(isLast ? "└─ " : "├─ ")
+                    .append(child.name).append("：").append(child.help).append("\n");
+
+            // 打印选项
+            String indent = isLast ? "   " : "│  ";
+            var options = new ArrayList<>(child.optionsMap.values());
+            for (int i = 0; i < options.size(); i++) {
+                boolean lastOpt = i == options.size() - 1;
+                sb.append(prefix).append(indent).append(lastOpt ? "└─ " : "├─ ").append(options.get(i)).append("\n");
+            }
+            // 递归嵌套子命令
+            printChildren(sb, child.childOptions, prefix + (isLast ? "   " : "│  "));
+        }
     }
 }

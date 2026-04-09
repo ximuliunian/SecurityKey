@@ -20,6 +20,15 @@ public record OptionsItem(
 ) {
     @Override
     public String toString() {
-        return String.format("%s  %s(%s)  %s", args.toString(), type, defaultValue != null ? defaultValue : "必填", help);
+        String defaultStr;
+        if (type == Type.Function) {
+            defaultStr = Type.Function.getName();
+        } else if (defaultValue != null) {
+            defaultStr = String.format("%s（%s）", type.getName(), defaultValue);
+        } else {
+            defaultStr = type.getName() + "（必填）";
+        }
+
+        return String.format("%s  %s  %s", args.toString(), defaultStr, help);
     }
 }
