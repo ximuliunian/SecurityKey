@@ -1,16 +1,11 @@
 package top.xmln.cli.gen;
 
 import top.xmln.option.*;
+import top.xmln.utils.EncryptUtils;
+import top.xmln.utils.FileUtils;
 import top.xmln.utils.PrintUtils;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Map;
 
 public class GenerateKey implements OptionsRun {
@@ -30,32 +25,14 @@ public class GenerateKey implements OptionsRun {
         String save = (String) options.get("save").value();
         PrintUtils.info("保存位置：" + save);
 
-        try {
-            PrintUtils.info("开始生成密钥对...");
-            // 创建密钥对
-            KeyPair keyPair = KeyPairGenerator.getInstance(algorithm).generateKeyPair();
-            byte[] publicKey = keyPair.getPublic().getEncoded(); // 公钥
-            byte[] privateKey = keyPair.getPrivate().getEncoded(); // 私钥
-
-            // 保存密钥对
-            File publicKeyFile = new File(save + "public.key");
-            File privateKeyFile = new File(save + "private.key");
-            publicKeyFile.getParentFile().mkdirs();
-            privateKeyFile.getParentFile().mkdirs();
-
-            // 写入文件
-            try (
-                    FileWriter publicKeyWriter = new FileWriter(publicKeyFile);
-                    FileWriter privateKeyWriter = new FileWriter(privateKeyFile);
-            ) {
-                publicKeyWriter.write(Base64.getEncoder().encodeToString(publicKey));
-                privateKeyWriter.write(Base64.getEncoder().encodeToString(privateKey));
-                PrintUtils.success("密钥对生成成功");
-            } catch (IOException e) {
-                PrintUtils.error("写入文件密钥对失败");
-            }
-        } catch (NoSuchAlgorithmException e) {
-            PrintUtils.error("加密算法不存在");
+        // 生成密钥对
+        EncryptUtils.AsymmetricResult result = EncryptUtils.asymmetric(algorithm);
+        if (result == null) {
+            return;
         }
+
+        // 保存密钥对
+        FileUtils.writeFile(save + "public.key", result.getPublicKey());
+        FileUtils.writeFile(save + "private.key", result.getPrivateKey());
     }
 }

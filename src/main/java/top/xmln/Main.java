@@ -17,7 +17,11 @@ public class Main {
         OptionsParser.createChild(genKey, "cert", "生成带证书的密钥对", new GenerateCert());
 
         // 解析并执行选项
-//        args = new String[]{"gen-key", "-a", "RSA", "-s", "./output/"};
+        args = new String[]{
+                "gen-key",
+                "cert",
+                "-e=1694502400000"
+        };
         rootOptionsParser.parse(args);
     }
 }
