@@ -246,7 +246,7 @@ public final class OptionsParser {
             String indent = isLast ? "   " : "│  ";
             var options = new ArrayList<>(child.optionsMap.values());
             for (int i = 0; i < options.size(); i++) {
-                boolean lastOpt = i == options.size() - 1;
+                boolean lastOpt = i == options.size() - 1 && child.childOptions.isEmpty();
                 sb.append(prefix).append(indent).append(lastOpt ? "└─ " : "├─ ").append(options.get(i)).append("\n");
             }
             // 递归嵌套子命令
