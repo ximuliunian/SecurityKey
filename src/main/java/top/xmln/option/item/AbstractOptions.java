@@ -42,12 +42,10 @@ public abstract class AbstractOptions<T> {
         return true;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        // 选项标志
-        sb.append(args.toString()).append("  ");
-
+    /**
+     * 获取选项类型字符串
+     */
+    protected void getOptionTypeStr(StringBuilder sb) {
         // 选项类型
         if (type == Type.Function) {
             // 功能选项
@@ -59,7 +57,17 @@ public abstract class AbstractOptions<T> {
             // 必填项选项
             sb.append(type.getName()).append("（必填）");
         }
-        sb.append("  ");
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        // 选项标志
+        sb.append(args.toString()).append(" ─ ");
+
+        // 选项类型
+        getOptionTypeStr(sb);
+        sb.append(" ─ ");
 
         // 帮助信息
         sb.append(help);

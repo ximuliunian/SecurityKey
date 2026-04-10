@@ -40,11 +40,10 @@ public class OptionNumber extends AbstractOptions<BigDecimal> {
     }
 
     @Override
-    public String toString() {
+    protected void getOptionTypeStr(StringBuilder sb) {
+        super.getOptionTypeStr(sb);
         if (choices != null && !choices.isEmpty()) {
-            List<String> list = choices.stream().map(BigDecimal::toString).toList();
-            help += String.format("  可选值为: [%s]", String.join(", ", list));
+            sb.append(choices.stream().map(BigDecimal::toString).toList());
         }
-        return super.toString();
     }
 }

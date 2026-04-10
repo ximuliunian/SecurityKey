@@ -39,10 +39,10 @@ public class OptionString extends AbstractOptions<String> {
     }
 
     @Override
-    public String toString() {
+    protected void getOptionTypeStr(StringBuilder sb) {
+        super.getOptionTypeStr(sb);
         if (choices != null && !choices.isEmpty()) {
-            help += String.format("  可选值为: [%s]", String.join(", ", choices));
+            sb.append(choices);
         }
-        return super.toString();
     }
 }
