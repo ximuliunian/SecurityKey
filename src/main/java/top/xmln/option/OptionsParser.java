@@ -1,5 +1,6 @@
 package top.xmln.option;
 
+import top.xmln.option.item.AbstractOptions;
 import top.xmln.utils.PrintUtils;
 
 import java.math.BigDecimal;
@@ -31,7 +32,7 @@ public final class OptionsParser {
     /**
      * 选项信息
      */
-    private final Map<String, OptionsItem> optionsMap = new LinkedHashMap<>();
+    private final Map<String, AbstractOptions> optionsMap = new LinkedHashMap<>();
 
     /**
      * 子命令构造
@@ -79,11 +80,11 @@ public final class OptionsParser {
     /**
      * 添加选项
      *
-     * @param optionsItem 选项
+     * @param abstractOptions 选项
      * @return 本类
      */
-    public OptionsParser add(OptionsItem optionsItem) {
-        optionsMap.put(optionsItem.name(), optionsItem);
+    public OptionsParser add(AbstractOptions abstractOptions) {
+        optionsMap.put(abstractOptions.getName(), abstractOptions);
         return this;
     }
 
@@ -141,12 +142,12 @@ public final class OptionsParser {
      * @param options    选项信息
      * @return 解析后的选项
      */
-    private Map<String, Option> parseString(int startIndex, String[] args, Map<String, OptionsItem> options) {
+    private Map<String, Option> parseString(int startIndex, String[] args, Map<String, AbstractOptions> options) {
         Map<String, Option> result = new HashMap<>();
         // 先把所有的默认选项添加到结果中
-        for (OptionsItem value : options.values()) {
-            if (value.defaultValue() != null) {
-                result.put(value.name(), new Option(value.name(), value.defaultValue(), value.type()));
+        for (AbstractOptions value : options.values()) {
+            if (value.getDefaultValue() != null) {
+                result.put(value.getName(), new Option(value.getName(), value.getDefaultValue(), value.getType()));
             }
         }
 
@@ -166,10 +167,10 @@ public final class OptionsParser {
                 val = args[i].substring(splitIndex + 1);
             }
 
-            for (OptionsItem value : options.values()) {
-                if (!value.args().contains(key)) continue;
+            for (AbstractOptions value : options.values()) {
+                if (!value.getArgs().contains(key)) continue;
 
-                switch (value.type()) {
+                switch (value.getType()) {
                     // 布尔类型
                     case Boolean -> {
                         /*
@@ -177,17 +178,17 @@ public final class OptionsParser {
                          * 如果默认值为true，那么就添加false，否则就添加true
                          * */
                         if (val == null || val.isBlank()) {
-                            if (value.defaultValue() != null) {
-                                result.put(value.name(), new Option(value.name(), !((boolean) value.defaultValue()), value.type()));
+                            if (value.getDefaultValue() != null) {
+                                result.put(value.getName(), new Option(value.getName(), !((boolean) value.getDefaultValue()), value.getType()));
                             }
                             continue;
                         }
 
                         // 有值则添加到结果中
                         if ("true".equals(val) || "false".equals(val)) {
-                            result.put(value.name(), new Option(value.name(), Boolean.parseBoolean(val), value.type()));
+                            result.put(value.getName(), new Option(value.getName(), Boolean.parseBoolean(val), value.getType()));
                         } else {
-                            PrintUtils.error("参数[" + value.name() + "]必须是true/false，当前值：" + val);
+                            PrintUtils.error("参数[" + value.getName() + "]必须是true/false，当前值：" + val);
                             return null;
                         }
                     }
@@ -195,7 +196,7 @@ public final class OptionsParser {
                     // 字符串类型
                     case String -> {
                         if (val == null || val.isBlank()) continue;
-                        result.put(value.name(), new Option(value.name(), val, value.type()));
+                        result.put(value.getName(), new Option(value.getName(), val, value.getType()));
                     }
 
                     // 数字类型
@@ -204,16 +205,21 @@ public final class OptionsParser {
 
                         // 通过正则表达式校验是否为数字类型
                         if (!val.matches("\\d+(\\.\\d+)?")) {
-                            PrintUtils.error("参数[" + value.name() + "]必须是数字，当前值：" + val);
+                            PrintUtils.error("参数[" + value.getName() + "]必须是数字，当前值：" + val);
                             return null;
                         }
-                        result.put(value.name(), new Option(value.name(), new BigDecimal(val), value.type()));
+                        result.put(value.getName(), new Option(value.getName(), new BigDecimal(val), value.getType()));
                     }
 
                     // 方法类型
                     case Function -> {
-                        result.put(value.name(), new Option(value.name(), null, value.type()));
+                        result.put(value.getName(), new Option(value.getName(), null, value.getType()));
                     }
+                }
+
+                // 校验选项是否符合要求
+                if (!value.verify(val)) {
+                    return null;
                 }
             }
         }
@@ -235,7 +241,7 @@ public final class OptionsParser {
         int currentIndex = 0;
 
         // 打印根选项
-        for (OptionsItem item : optionsMap.values()) {
+        for (AbstractOptions item : optionsMap.values()) {
             currentIndex++;
             boolean isLast = currentIndex == totalItems;
             sb.append(isLast ? "└─ " : "├─ ").append(item).append("\n");
