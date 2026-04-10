@@ -66,4 +66,40 @@ public class PrintUtils {
     public static void warning(String message) {
         System.out.println(BOLD + YELLOW + "⚠ " + message + RESET);
     }
+
+    /**
+     * 打印成功信息
+     *
+     * @param message 要打印的成功信息
+     */
+    public static void successFormat(String message, Object... params) {
+        success(String.format(message, params));
+    }
+
+    /**
+     * 打印失败信息
+     *
+     * @param message 要打印的失败信息
+     */
+    public static void errorFormat(String message, Object... params) {
+        error(String.format(message, params));
+    }
+
+    /**
+     * 打印普通信息
+     *
+     * @param message 要打印的信息
+     */
+    public static void infoFormat(String message, Object... params) {
+        info(String.format(message, params));
+    }
+
+    /**
+     * 打印警告信息
+     *
+     * @param message 要打印的警告信息
+     */
+    public static void warningFormat(String message, Object... params) {
+        warning(String.format(message, params));
+    }
 }

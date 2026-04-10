@@ -11,7 +11,7 @@ import java.util.List;
  */
 @AllArgsConstructor
 @Getter
-public abstract class AbstractOptions<T> {
+public abstract class AbstractOptions {
     /**
      * 选项名称
      */
@@ -38,7 +38,7 @@ public abstract class AbstractOptions<T> {
      *
      * @return true:符合要求 false:不符合要求
      */
-    public boolean verify(T value) {
+    public boolean verify(String value) {
         return true;
     }
 

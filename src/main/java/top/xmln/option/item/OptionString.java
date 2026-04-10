@@ -5,7 +5,7 @@ import top.xmln.utils.PrintUtils;
 
 import java.util.List;
 
-public class OptionString extends AbstractOptions<String> {
+public class OptionString extends AbstractOptions{
     /**
      * 可选值
      */
@@ -34,7 +34,7 @@ public class OptionString extends AbstractOptions<String> {
                 return true;
             }
         }
-        PrintUtils.error(String.format("%s 选项值 %s 不在可选值 %s 中", name, value, choices));
+        PrintUtils.errorFormat("%s 选项值 %s 不在可选值 %s 中", args, value, choices);
         return false;
     }
 

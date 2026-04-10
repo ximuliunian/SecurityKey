@@ -43,7 +43,8 @@ public class JsonUtils extends ObjectMapper {
         try {
             return getInstance().writeValueAsString(o);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON 序列化失败");
+            PrintUtils.errorFormat("JSON 序列化失败：%s", e.getMessage());
+            return null;
         }
     }
 
@@ -57,7 +58,8 @@ public class JsonUtils extends ObjectMapper {
         try {
             return getInstance().readTree(json);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON 反序列化失败");
+            PrintUtils.errorFormat("JSON 反序列化失败：%s", e.getMessage());
+            return null;
         }
     }
 
@@ -92,7 +94,8 @@ public class JsonUtils extends ObjectMapper {
         try {
             return getInstance().readValue(json, clazz);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON 反序列化失败", e);
+            PrintUtils.errorFormat("JSON 反序列化失败：%s", e.getMessage());
+            return null;
         }
     }
 
@@ -104,12 +107,11 @@ public class JsonUtils extends ObjectMapper {
      * @return 处理结果
      */
     public static <T> T readJsonFile(File file, Class<T> clazz) {
-        T archiveInfo;
         try {
-            archiveInfo = JsonUtils.getInstance().readValue(file, clazz);
+            return JsonUtils.getInstance().readValue(file, clazz);
         } catch (IOException e) {
-            throw new RuntimeException("JSON 反序列化失败", e);
+            PrintUtils.errorFormat("JSON 反序列化失败：%s", e.getMessage());
+            return null;
         }
-        return archiveInfo;
     }
 }

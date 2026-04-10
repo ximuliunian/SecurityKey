@@ -25,8 +25,11 @@ public class EncryptUtils {
      * @return 算法结果
      */
     public static AsymmetricResult asymmetric(String algorithm) {
+        if ("ECC".equals(algorithm)) {
+            algorithm = "EC";
+        }
         try {
-            PrintUtils.info(String.format("正在使用%s算法生成非对称密钥对...", algorithm));
+            PrintUtils.infoFormat("正在使用%s算法生成非对称密钥对...", algorithm);
             // 创建密钥对
             KeyPair keyPair = KeyPairGenerator.getInstance(algorithm).generateKeyPair();
             byte[] publicKey = keyPair.getPublic().getEncoded(); // 公钥
@@ -36,10 +39,9 @@ public class EncryptUtils {
             AsymmetricResult result = new AsymmetricResult();
             result.publicKey = base64EncodeBytes(publicKey);
             result.privateKey = base64EncodeBytes(privateKey);
-            PrintUtils.success("密钥对生成成功");
             return result;
         } catch (NoSuchAlgorithmException e) {
-            PrintUtils.error("加密算法不存在");
+            PrintUtils.errorFormat("加密算法不存在：%s", e.getMessage());
             return null;
         }
     }
@@ -54,23 +56,24 @@ public class EncryptUtils {
      */
     public static String asymmetricEncrypt(String algorithm, String key, String data) {
         try {
+            PrintUtils.infoFormat("正在使用%s算法非对称加密...", algorithm);
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.ENCRYPT_MODE, getKey(algorithm, key));
             return base64EncodeBytes(cipher.doFinal(data.getBytes()));
         } catch (NoSuchAlgorithmException e) {
-            PrintUtils.error("加密算法不存在");
+            PrintUtils.errorFormat("加密算法不存在：%s", e.getMessage());
             return null;
         } catch (NoSuchPaddingException e) {
-            PrintUtils.error("加密填充异常");
+            PrintUtils.errorFormat("加密填充异常：%s", e.getMessage());
             return null;
         } catch (InvalidKeyException e) {
-            PrintUtils.error("密钥异常");
+            PrintUtils.errorFormat("密钥异常：%s", e.getMessage());
             return null;
         } catch (IllegalBlockSizeException e) {
-            PrintUtils.error("数据块大小异常");
+            PrintUtils.errorFormat("数据块大小异常：%s", e.getMessage());
             return null;
         } catch (BadPaddingException e) {
-            PrintUtils.error("填充异常");
+            PrintUtils.errorFormat("填充异常：%s", e.getMessage());
             return null;
         }
     }
@@ -85,23 +88,24 @@ public class EncryptUtils {
      */
     public static String asymmetricDecrypt(String algorithm, String key, String encryptedData) {
         try {
+            PrintUtils.infoFormat("正在使用%s算法非对称解密...", algorithm);
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.DECRYPT_MODE, getKey(algorithm, key));
             return new String(cipher.doFinal(base64DecodeBytes(encryptedData)));
         } catch (NoSuchAlgorithmException e) {
-            PrintUtils.error("解密算法不存在");
+            PrintUtils.errorFormat("解密算法不存在：%s", e.getMessage());
             return null;
         } catch (NoSuchPaddingException e) {
-            PrintUtils.error("解密填充异常");
+            PrintUtils.errorFormat("解密填充异常：%s", e.getMessage());
             return null;
         } catch (InvalidKeyException e) {
-            PrintUtils.error("密钥异常");
+            PrintUtils.errorFormat("密钥异常：%s", e.getMessage());
             return null;
         } catch (IllegalBlockSizeException e) {
-            PrintUtils.error("数据块大小异常");
+            PrintUtils.errorFormat("数据块大小异常：%s", e.getMessage());
             return null;
         } catch (BadPaddingException e) {
-            PrintUtils.error("填充异常");
+            PrintUtils.errorFormat("填充异常：%s", e.getMessage());
             return null;
         }
     }
@@ -123,14 +127,81 @@ public class EncryptUtils {
                 return factory.generatePublic(new X509EncodedKeySpec(bytes));
             }
         } catch (NoSuchAlgorithmException e) {
-            PrintUtils.error("加密算法不存在");
+            PrintUtils.errorFormat("加密算法不存在：%s", e.getMessage());
             return null;
         } catch (InvalidKeySpecException e) {
-            PrintUtils.error("密钥规格异常");
+            PrintUtils.errorFormat("密钥规格异常：%s", e.getMessage());
             return null;
         }
     }
 
+    /**
+     * 对数据进行签名
+     *
+     * @param signAlgorithm 签名算法
+     * @param privateKey    私钥字符串
+     * @param data          数据字符串
+     * @return 签名字符串
+     */
+    public static String sign(String signAlgorithm, String privateKey, String data) {
+        try {
+            PrintUtils.infoFormat("正在使用%s算法签名...", signAlgorithm);
+            Signature signature = Signature.getInstance(signAlgorithm);
+            signature.initSign(getPrivateKey(signAlgorithm.split("with")[1], privateKey));
+            signature.update(data.getBytes(StandardCharsets.UTF_8));
+            byte[] sign = signature.sign();
+            return base64EncodeBytes(sign);
+        } catch (Exception e) {
+            PrintUtils.errorFormat("签名失败：%s", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 对数据进行签名验签
+     *
+     * @param signAlgorithm 签名算法
+     * @param publicKey     公钥字符串
+     * @param data          数据字符串
+     * @param sign          签名字符串
+     * @return 验签结果
+     */
+    public static boolean verify(String signAlgorithm, String publicKey, String data, String sign) {
+        try {
+            PrintUtils.infoFormat("正在使用%s算法验签...", signAlgorithm);
+            Signature signature = Signature.getInstance(signAlgorithm);
+            signature.initVerify(getPublicKey(signAlgorithm.split("with")[1], publicKey));
+            signature.update(data.getBytes(StandardCharsets.UTF_8));
+            boolean verify = signature.verify(base64DecodeBytes(sign));
+            PrintUtils.infoFormat("签名结果：%s", verify ? "正确" : "错误");
+            return verify;
+        } catch (Exception e) {
+            PrintUtils.errorFormat("验签失败：%s", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 获取密钥对中的私钥
+     *
+     * @param algorithm 密钥算法
+     * @param base64Key 密钥字符串
+     * @return 私钥
+     */
+    private static PrivateKey getPrivateKey(String algorithm, String base64Key) throws Exception {
+        return KeyFactory.getInstance(algorithm).generatePrivate(new PKCS8EncodedKeySpec(base64DecodeBytes(base64Key)));
+    }
+
+    /**
+     * 获取密钥对中的公钥
+     *
+     * @param algorithm 密钥算法
+     * @param base64Key 密钥字符串
+     * @return 公钥
+     */
+    private static PublicKey getPublicKey(String algorithm, String base64Key) throws Exception {
+        return KeyFactory.getInstance(algorithm).generatePublic(new X509EncodedKeySpec(base64DecodeBytes(base64Key)));
+    }
 
     /**
      * 返回数据摘要
@@ -140,16 +211,17 @@ public class EncryptUtils {
      * @return 摘要
      */
     public static String digest(String digestAlgorithm, String data) {
+        PrintUtils.infoFormat("正在使用%s算法计算摘要...", digestAlgorithm);
         try {
             MessageDigest digest = MessageDigest.getInstance(digestAlgorithm);
             digest.update(data.getBytes());
-            return base64EncodeBytes(digest.digest());
+            byte[] bytes = digest.digest();
+            return base64EncodeBytes(bytes);
         } catch (NoSuchAlgorithmException e) {
             PrintUtils.error("摘要算法不存在");
             return null;
         }
     }
-
 
     /**
      * Base64编码

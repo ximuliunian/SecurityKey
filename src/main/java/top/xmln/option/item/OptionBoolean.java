@@ -4,7 +4,7 @@ import top.xmln.option.Type;
 
 import java.util.List;
 
-public class OptionBoolean extends AbstractOptions<Boolean> {
+public class OptionBoolean extends AbstractOptions {
     /**
      * @param name         选项名称
      * @param args         选项

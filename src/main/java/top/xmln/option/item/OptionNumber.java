@@ -6,7 +6,7 @@ import top.xmln.utils.PrintUtils;
 import java.math.BigDecimal;
 import java.util.List;
 
-public class OptionNumber extends AbstractOptions<BigDecimal> {
+public class OptionNumber extends AbstractOptions {
     /**
      * 选项类型
      */
@@ -24,18 +24,18 @@ public class OptionNumber extends AbstractOptions<BigDecimal> {
     }
 
     @Override
-    public boolean verify(BigDecimal value) {
+    public boolean verify(String value) {
         if (choices == null) {
             return true;
         }
-
+        BigDecimal val = new BigDecimal(value);
         for (BigDecimal choice : choices) {
-            if (value.compareTo(choice) == 0) {
+            if (val.compareTo(choice) == 0) {
                 return true;
             }
         }
         List<String> list = choices.stream().map(BigDecimal::toString).toList();
-        PrintUtils.error(String.format("%s 选项值 %s 不在可选值 %s 中", name, value, String.join(", ", list)));
+        PrintUtils.errorFormat("%s 选项值 %s 不在可选值 %s 中", args, value, String.join(", ", list));
         return false;
     }
 

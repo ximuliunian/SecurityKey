@@ -115,7 +115,7 @@ public final class OptionsParser {
         OptionsParser parser = childOptions.get(arg);
         while (true) {
             if (parser == null) {
-                PrintUtils.error("子命令[" + arg + "]不存在，可用子命令：" + childOptions.keySet());
+                PrintUtils.errorFormat("子命令[%s]不存在，可用子命令：%s", arg, childOptions.keySet());
                 break;
             }
 
@@ -188,7 +188,7 @@ public final class OptionsParser {
                         if ("true".equals(val) || "false".equals(val)) {
                             result.put(value.getName(), new Option(value.getName(), Boolean.parseBoolean(val), value.getType()));
                         } else {
-                            PrintUtils.error("参数[" + value.getName() + "]必须是true/false，当前值：" + val);
+                            PrintUtils.errorFormat("参数[%s]必须是true/false，当前值：%s", value.getName(), val);
                             return null;
                         }
                     }
@@ -205,7 +205,7 @@ public final class OptionsParser {
 
                         // 通过正则表达式校验是否为数字类型
                         if (!val.matches("\\d+(\\.\\d+)?")) {
-                            PrintUtils.error("参数[" + value.getName() + "]必须是数字，当前值：" + val);
+                            PrintUtils.errorFormat("参数[%s]必须是数字，当前值：%s", value.getName(), val);
                             return null;
                         }
                         result.put(value.getName(), new Option(value.getName(), new BigDecimal(val), value.getType()));
