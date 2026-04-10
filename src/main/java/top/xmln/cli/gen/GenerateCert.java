@@ -104,7 +104,7 @@ public class GenerateCert implements OptionsRun {
         String privateKey = FileUtils.readFile(signPath);
         String json = JsonUtils.toJson(cert);
         // 标准签名算法名
-        String standardSignAlgorithm = String.format("%swith%s", digestAlgorithm.replace("-", ""), signAlgorithm);
+        String standardSignAlgorithm = EncryptUtils.signAsymmetric(signAlgorithm, digestAlgorithm);
         cert.put("signAlgorithm", standardSignAlgorithm);
         PrintUtils.infoFormat("签名算法：%s", standardSignAlgorithm);
         // 签名

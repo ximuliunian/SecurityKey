@@ -136,6 +136,17 @@ public class EncryptUtils {
     }
 
     /**
+     * 拼接签名算法
+     *
+     * @param keyAlgorithm    密钥算法
+     * @param digestAlgorithm 摘要算法
+     * @return 签名算法
+     */
+    public static String signAsymmetric(String keyAlgorithm, String digestAlgorithm) {
+        return String.format("%swith%s", digestAlgorithm.replace("-", ""), keyAlgorithm);
+    }
+
+    /**
      * 对数据进行签名
      *
      * @param signAlgorithm 签名算法
