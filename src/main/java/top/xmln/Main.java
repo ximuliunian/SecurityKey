@@ -4,6 +4,7 @@ import top.xmln.cli.RootOption;
 import top.xmln.cli.gen.GenerateCert;
 import top.xmln.cli.gen.GenerateKey;
 import top.xmln.cli.sign.Sign;
+import top.xmln.cli.sign.Verify;
 import top.xmln.option.OptionsParser;
 
 public class Main {
@@ -19,6 +20,9 @@ public class Main {
 
         // 对文件内容进行签名
         OptionsParser.createChild(rootOptionsParser, "sign", "对文件内容进行签名", new Sign());
+
+        // 对签名进行验证
+        OptionsParser.createChild(rootOptionsParser, "verify", "对签名进行验证", new Verify());
 
         rootOptionsParser.parse(args);
     }

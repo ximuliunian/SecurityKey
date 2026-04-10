@@ -19,10 +19,9 @@ public class Sign implements OptionsRun {
                 "file", Arrays.asList("-f", "--file"),
                 null, null, "被签名文件路径"
         ));
-
         // 签名密钥私钥数据路径
         optionsParser.add(new OptionString(
-                "signPath", Arrays.asList("-sp", "--sign-path"),
+                "privatePath", Arrays.asList("-p", "--private-path"),
                 "./output/private.key", null, "签名密钥私钥数据路径"
         ));
         // 签名密钥算法

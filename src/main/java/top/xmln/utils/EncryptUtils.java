@@ -183,9 +183,7 @@ public class EncryptUtils {
             Signature signature = Signature.getInstance(signAlgorithm);
             signature.initVerify(getPublicKey(signAlgorithm.split("with")[1], publicKey));
             signature.update(data.getBytes(StandardCharsets.UTF_8));
-            boolean verify = signature.verify(base64DecodeBytes(sign));
-            PrintUtils.infoFormat("签名结果：%s", verify ? "正确" : "错误");
-            return verify;
+            return signature.verify(base64DecodeBytes(sign));
         } catch (Exception e) {
             PrintUtils.errorFormat("验签失败：%s", e.getMessage());
             return false;
