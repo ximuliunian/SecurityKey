@@ -1,8 +1,11 @@
 package top.xmln;
 
 import top.xmln.cli.RootOption;
-import top.xmln.cli.gen.GenerateCert;
-import top.xmln.cli.gen.GenerateKey;
+import top.xmln.cli.asymmetric.GenerateCert;
+import top.xmln.cli.asymmetric.GenerateKey;
+import top.xmln.cli.asymmetric.crypt.Decrypt;
+import top.xmln.cli.asymmetric.crypt.Encrypt;
+import top.xmln.cli.hash.Hash;
 import top.xmln.cli.sign.Sign;
 import top.xmln.cli.sign.Verify;
 import top.xmln.option.OptionsParser;
@@ -23,6 +26,15 @@ public class Main {
 
         // 对签名进行验证
         OptionsParser.createChild(rootOptionsParser, "verify", "对签名进行验证", new Verify());
+
+        // 加密数据
+        OptionsParser.createChild(rootOptionsParser, "encrypt", "对数据进行非对称加密", new Encrypt());
+
+        // 解密数据
+        OptionsParser.createChild(rootOptionsParser, "decrypt", "对数据进行非对称解密", new Decrypt());
+
+        // 计算文件哈希
+        OptionsParser.createChild(rootOptionsParser, "hash", "计算文件哈希值", new Hash());
 
         rootOptionsParser.parse(args);
     }

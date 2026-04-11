@@ -1,4 +1,4 @@
-package top.xmln.cli.gen;
+package top.xmln.cli.asymmetric;
 
 import top.xmln.option.Option;
 import top.xmln.option.OptionsParser;
