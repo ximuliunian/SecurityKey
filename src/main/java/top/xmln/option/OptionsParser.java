@@ -4,10 +4,7 @@ import top.xmln.option.item.AbstractOptions;
 import top.xmln.utils.PrintUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 命令行选项解析器
@@ -226,7 +223,11 @@ public final class OptionsParser {
 
         // 检查一下必选参数是否为空
         if (options.size() != result.size()) {
-            PrintUtils.error("必填参数为空");
+            // 输出没填的必填参数
+            List<String> list = options.keySet().stream()
+                    .filter(s -> !result.containsKey(s))
+                    .toList();
+            PrintUtils.errorFormat("必填参数%s为空", list);
             return null;
         }
         return result;

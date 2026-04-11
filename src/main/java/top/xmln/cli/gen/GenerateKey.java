@@ -38,8 +38,9 @@ public class GenerateKey implements OptionsRun {
         }
 
         // 保存密钥对
-        PrintUtils.infoFormat("保存位置：%s", save);
+        PrintUtils.infoFormat("密钥对保存位置：%s", save);
         FileUtils.writeFile(save + "public.key", result.getPublicKey());
         FileUtils.writeFile(save + "private.key", result.getPrivateKey());
+        PrintUtils.success("密钥对生成成功");
     }
 }

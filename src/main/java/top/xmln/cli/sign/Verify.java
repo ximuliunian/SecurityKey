@@ -16,7 +16,7 @@ public class Verify implements OptionsRun {
     public void register(OptionsParser optionsParser) {
         // 签名文件路径
         optionsParser.add(new OptionString(
-                "file", Arrays.asList("-f", "--file"),
+                "signFile", Arrays.asList("-sf", "--sign-file"),
                 null, null, "签名文件路径"
         ));
         // 原始数据文件路径
@@ -44,7 +44,7 @@ public class Verify implements OptionsRun {
     @Override
     public void run(Map<String, Option> options) {
         // 读取签名文件内容
-        String file = (String) options.get("file").value();
+        String file = (String) options.get("signFile").value();
         PrintUtils.infoFormat("读取签名文件内容: %s", file);
         String signContent = FileUtils.readFile(file);
 
@@ -65,7 +65,10 @@ public class Verify implements OptionsRun {
         PrintUtils.info("开始准备验证签名...");
 
         // 验证签名
-        boolean verify = EncryptUtils.verify(standardSignAlgorithm, publicKey, originalContent, signContent);
+        Boolean verify = EncryptUtils.verify(standardSignAlgorithm, publicKey, originalContent, signContent);
+        if (verify == null) {
+            return;
+        }
         PrintUtils.successFormat("签名结果：%s", verify ? "正确" : "错误");
     }
 }

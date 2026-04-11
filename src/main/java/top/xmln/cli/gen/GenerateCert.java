@@ -5,10 +5,7 @@ import top.xmln.option.OptionsParser;
 import top.xmln.option.OptionsRun;
 import top.xmln.option.item.OptionNumber;
 import top.xmln.option.item.OptionString;
-import top.xmln.utils.EncryptUtils;
-import top.xmln.utils.FileUtils;
-import top.xmln.utils.JsonUtils;
-import top.xmln.utils.PrintUtils;
+import top.xmln.utils.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,31 +59,31 @@ public class GenerateCert implements OptionsRun {
         // 证书ID
         String id = UUID.randomUUID().toString();
         cert.put("id", id);
-        PrintUtils.infoFormat("证书ID：%s", id);
+        PrintUtils.infoFormat("证书 - ID：%s", id);
         // 证书名称
         String name = (String) options.get("name").value();
         cert.put("name", name);
-        PrintUtils.infoFormat("证书名称：%s", name);
+        PrintUtils.infoFormat("证书 - 名称：%s", name);
         // 签发时间
         long signTime = System.currentTimeMillis();
         cert.put("signTime", String.valueOf(System.currentTimeMillis()));
-        PrintUtils.infoFormat("签发时间：%s", signTime);
+        PrintUtils.infoFormat("证书 - 签发时间：%s（%s）", signTime, DateUtils.millisecondTimestampToDateString(signTime));
         // 加密算法
         String algorithm = (String) options.get("algorithm").value();
         cert.put("algorithm", algorithm);
-        PrintUtils.infoFormat("密钥对生成算法：%s", algorithm);
+        PrintUtils.infoFormat("证书 - 密钥对生成算法：%s", algorithm);
         // 过期时间（毫秒时间戳）
         long expireTime = System.currentTimeMillis() + Long.parseLong(options.get("expire").value().toString());
         cert.put("expireTime", String.valueOf(expireTime));
-        PrintUtils.infoFormat("过期时间：%s", expireTime);
+        PrintUtils.infoFormat("证书 - 过期时间：%s（%s）", expireTime, DateUtils.millisecondTimestampToDateString(expireTime));
         // 摘要算法
         String digestAlgorithm = (String) options.get("digestAlgorithm").value();
         cert.put("digestAlgorithm", digestAlgorithm);
-        PrintUtils.infoFormat("摘要算法：%s", digestAlgorithm);
+        PrintUtils.infoFormat("证书 - 摘要算法：%s", digestAlgorithm);
         // 签名密钥算法
         String signAlgorithm = (String) options.get("signAlgorithm").value();
         cert.put("signAlgorithm", signAlgorithm);
-        PrintUtils.infoFormat("签名密钥算法：%s", signAlgorithm);
+        PrintUtils.infoFormat("证书 - 签名密钥算法：%s", signAlgorithm);
 
         // 生成密钥对
         EncryptUtils.AsymmetricResult result = EncryptUtils.asymmetric(algorithm);
@@ -96,28 +93,28 @@ public class GenerateCert implements OptionsRun {
 
         // 公钥
         cert.put("publicKey", result.getPublicKey());
-        PrintUtils.infoFormat("证书公钥：%s", result.getPublicKey());
+        PrintUtils.infoFormat("证书 - 公钥：%s", result.getPublicKey());
 
         // 私钥和证书内容
         String signPath = (String) options.get("signPath").value();
-        PrintUtils.infoFormat("获取签名密钥私钥数据，路径：%s", signPath);
+        PrintUtils.infoFormat("获取签名密钥私钥数据，私钥路径：%s", signPath);
         String privateKey = FileUtils.readFile(signPath);
         String json = JsonUtils.toJson(cert);
         // 标准签名算法名
         String standardSignAlgorithm = EncryptUtils.signAsymmetric(signAlgorithm, digestAlgorithm);
         cert.put("signAlgorithm", standardSignAlgorithm);
-        PrintUtils.infoFormat("签名算法：%s", standardSignAlgorithm);
+        PrintUtils.infoFormat("证书 - 签名密钥算法：%s", standardSignAlgorithm);
         // 签名
         String sign = EncryptUtils.sign(standardSignAlgorithm, privateKey, json);
         if (sign == null) {
             return;
         }
         cert.put("sign", sign);
-        PrintUtils.infoFormat("签名：%s", sign);
+        PrintUtils.infoFormat("证书 - 签名：%s", sign);
 
         // 保存位置
         String save = (String) options.get("save").value();
-        PrintUtils.infoFormat("保存内容位置：%s", save);
+        PrintUtils.infoFormat("证书及密钥对保存位置：%s", save);
         // 保存私钥
         FileUtils.writeFile(String.format("%s%s-private.key", save, name), result.getPrivateKey());
         // 保存公钥

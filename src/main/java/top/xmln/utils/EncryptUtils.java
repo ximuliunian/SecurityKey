@@ -177,7 +177,7 @@ public class EncryptUtils {
      * @param sign          签名字符串
      * @return 验签结果
      */
-    public static boolean verify(String signAlgorithm, String publicKey, String data, String sign) {
+    public static Boolean verify(String signAlgorithm, String publicKey, String data, String sign) {
         try {
             PrintUtils.infoFormat("正在使用%s算法验签...", signAlgorithm);
             Signature signature = Signature.getInstance(signAlgorithm);
@@ -186,7 +186,7 @@ public class EncryptUtils {
             return signature.verify(base64DecodeBytes(sign));
         } catch (Exception e) {
             PrintUtils.errorFormat("验签失败：%s", e.getMessage());
-            return false;
+            return null;
         }
     }
 

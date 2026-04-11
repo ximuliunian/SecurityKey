@@ -49,7 +49,7 @@ public class Sign implements OptionsRun {
         String content = FileUtils.readFile(file);
 
         // 读取签名密钥私钥数据
-        String signPath = (String) options.get("signPath").value();
+        String signPath = (String) options.get("privatePath").value();
         PrintUtils.infoFormat("读取签名密钥私钥数据: %s", signPath);
         String privateKey = FileUtils.readFile(signPath);
 
@@ -63,7 +63,7 @@ public class Sign implements OptionsRun {
 
         // 写入签名文件
         String signOutputPath = (String) options.get("signOutputPath").value();
-        PrintUtils.infoFormat("写入签名文件：%s", signOutputPath);
+        PrintUtils.infoFormat("准备把签名写入文件，写入位置：%s", signOutputPath);
         FileUtils.writeFile(signOutputPath, sign);
     }
 }

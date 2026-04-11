@@ -37,7 +37,7 @@ public class PrintUtils {
      * @param message 要打印的成功信息
      */
     public static void success(String message) {
-        System.out.println(BOLD + GREEN + "✔ " + message + RESET);
+        System.out.println(BOLD + GREEN + "成功 " + message + RESET);
     }
 
     /**
@@ -46,7 +46,7 @@ public class PrintUtils {
      * @param message 要打印的失败信息
      */
     public static void error(String message) {
-        System.out.println(BOLD + RED + "✘ " + message + RESET);
+        System.out.println(BOLD + RED + "失败 " + message + RESET);
     }
 
     /**
@@ -55,7 +55,7 @@ public class PrintUtils {
      * @param message 要打印的信息
      */
     public static void info(String message) {
-        System.out.println(BOLD + BLUE + "ⓘ " + message + RESET);
+        System.out.println(BOLD + BLUE + "信息 " + message + RESET);
     }
 
     /**
@@ -64,7 +64,7 @@ public class PrintUtils {
      * @param message 要打印的警告信息
      */
     public static void warning(String message) {
-        System.out.println(BOLD + YELLOW + "⚠ " + message + RESET);
+        System.out.println(BOLD + YELLOW + "警告 " + message + RESET);
     }
 
     /**

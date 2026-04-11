@@ -24,7 +24,7 @@ public class FileUtils {
         }
 
         try (FileWriter privateKeyWriter = new FileWriter(privateKeyFile)) {
-            PrintUtils.infoFormat("开始写入文件：%s", filePath);
+            PrintUtils.infoFormat("写入文件：%s", filePath);
             privateKeyWriter.write(content);
             return true;
         } catch (IOException e) {
@@ -40,7 +40,7 @@ public class FileUtils {
      * @return 文件内容
      */
     public static String readFile(String filePath) {
-        PrintUtils.infoFormat("开始读取文件：%s", filePath);
+        PrintUtils.infoFormat("读取文件：%s", filePath);
         try (FileReader reader = new FileReader(filePath)) {
             StringBuilder sb = new StringBuilder();
             int c;
