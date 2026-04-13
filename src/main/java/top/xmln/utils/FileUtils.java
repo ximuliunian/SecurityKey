@@ -19,7 +19,7 @@ public class FileUtils {
     public static boolean writeFile(String filePath, String content) {
         File privateKeyFile = new File(filePath);
         if (!privateKeyFile.getParentFile().exists()) {
-            PrintUtils.warningFormat("父目录不存在，自动创建：%s", privateKeyFile.getParentFile().getPath());
+            PrintUtils.warningFormat("父目录不存在，已自动创建：%s", privateKeyFile.getParentFile().getPath());
             privateKeyFile.getParentFile().mkdirs();
         }
 

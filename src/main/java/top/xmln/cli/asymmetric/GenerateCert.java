@@ -3,6 +3,7 @@ package top.xmln.cli.asymmetric;
 import top.xmln.option.Option;
 import top.xmln.option.OptionsParser;
 import top.xmln.option.OptionsRun;
+import top.xmln.option.item.OptionBoolean;
 import top.xmln.option.item.OptionNumber;
 import top.xmln.option.item.OptionString;
 import top.xmln.utils.*;
@@ -50,6 +51,16 @@ public class GenerateCert implements OptionsRun {
                 "digestAlgorithm", Arrays.asList("-da", "--digest-algorithm"),
                 "SHA-256", Arrays.asList("SHA-256", "SHA-512"), "摘要算法"
         ));
+        // 是否对证书进行Base64编码
+        optionsParser.add(new OptionBoolean(
+                "base64Encode", Arrays.asList("-be", "--base64-encode"),
+                false, "是否对证书进行Base64编码"
+        ));
+        // 是否单独保存公钥文件
+        optionsParser.add(new OptionBoolean(
+                "savePublicKeyFile", Arrays.asList("-spkf", "--save-public-key-file"),
+                false, "是否单独保存公钥文件"
+        ));
     }
 
     @Override
@@ -73,7 +84,7 @@ public class GenerateCert implements OptionsRun {
         cert.put("algorithm", algorithm);
         PrintUtils.infoFormat("证书 - 密钥对生成算法：%s", algorithm);
         // 过期时间（毫秒时间戳）
-        long expireTime = System.currentTimeMillis() + Long.parseLong(options.get("expire").value().toString());
+        long expireTime = Long.parseLong(options.get("expire").value().toString());
         cert.put("expireTime", String.valueOf(expireTime));
         PrintUtils.infoFormat("证书 - 过期时间：%s（%s）", expireTime, DateUtils.millisecondTimestampToDateString(expireTime));
         // 摘要算法
@@ -117,10 +128,21 @@ public class GenerateCert implements OptionsRun {
         PrintUtils.infoFormat("证书及密钥对保存位置：%s", save);
         // 保存私钥
         FileUtils.writeFile(String.format("%s%s-private.key", save, name), result.getPrivateKey());
-        // 保存公钥
-        FileUtils.writeFile(String.format("%s%s-public.key", save, name), result.getPublicKey());
+
+        // 保存公钥文件
+        if ((boolean) options.get("savePublicKeyFile").value()) {
+            FileUtils.writeFile(String.format("%s%s-public.key", save, name), result.getPublicKey());
+        }
+
+        // 是否对证书进行Base64编码
+        boolean base64Encode = (boolean) options.get("base64Encode").value();
+        String certSavePath = String.format("%s%s-cert.txt", save, name);
         // 保存证书
-        FileUtils.writeFile(String.format("%s%s-cert.json", save, name), JsonUtils.toJson(cert));
+        if (base64Encode) {
+            FileUtils.writeFile(certSavePath, EncryptUtils.base64EncodeStr(JsonUtils.toJson(cert)));
+        } else {
+            FileUtils.writeFile(certSavePath, JsonUtils.toJson(cert));
+        }
         PrintUtils.success("证书生成成功");
     }
 }

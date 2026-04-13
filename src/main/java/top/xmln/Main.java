@@ -5,7 +5,7 @@ import top.xmln.cli.asymmetric.GenerateCert;
 import top.xmln.cli.asymmetric.GenerateKey;
 import top.xmln.cli.asymmetric.crypt.Decrypt;
 import top.xmln.cli.asymmetric.crypt.Encrypt;
-import top.xmln.cli.hash.Hash;
+import top.xmln.cli.digest.Digest;
 import top.xmln.cli.sign.Sign;
 import top.xmln.cli.sign.Verify;
 import top.xmln.option.OptionsParser;
@@ -33,8 +33,8 @@ public class Main {
         // 解密数据
         OptionsParser.createChild(rootOptionsParser, "decrypt", "对数据进行非对称解密", new Decrypt());
 
-        // 计算文件哈希
-        OptionsParser.createChild(rootOptionsParser, "hash", "计算文件哈希值", new Hash());
+        // 计算文件摘要
+        OptionsParser.createChild(rootOptionsParser, "digest", "计算文件摘要", new Digest());
 
         rootOptionsParser.parse(args);
     }
